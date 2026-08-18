@@ -1,10 +1,13 @@
 package dev.frankheijden.insights.commands.util;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.incendo.cloud.SenderMapper;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -38,6 +41,24 @@ public class CommandSenderMapper implements SenderMapper<CommandSourceStack, Com
             @Override
             public @Nullable Entity getExecutor() {
                 return sender instanceof Entity entity ? entity : null;
+            }
+
+            @Override
+            public Player getPlayerOrThrow() throws CommandSyntaxException {
+                Entity executor = getExecutor();
+                if (!(executor instanceof Player player)) {
+                    throw new SimpleCommandExceptionType(() -> "permissions.requires.player").create();
+                }
+                return player;
+            }
+
+            @Override
+            public Entity getEntityOrThrow() throws CommandSyntaxException {
+                Entity executor = getExecutor();
+                if (executor == null) {
+                    throw new SimpleCommandExceptionType(() -> "permissions.requires.entity").create();
+                }
+                return executor;
             }
 
             @Override

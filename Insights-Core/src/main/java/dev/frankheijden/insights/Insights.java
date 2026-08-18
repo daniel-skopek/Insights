@@ -88,6 +88,7 @@ public class Insights extends InsightsPlugin {
     private RedstoneUpdateCount redstoneUpdateCount = null;
     private ChunkTeleport chunkTeleport;
     private InsightsNMS nms;
+    private PlayerTrackerTask playerTrackerTask;
 
     @Override
     public void onLoad() {
@@ -124,6 +125,7 @@ public class Insights extends InsightsPlugin {
         }, 50L, TimeUnit.MILLISECONDS);
 
         playerList = new PlayerList(Bukkit.getOnlinePlayers());
+        playerTrackerTask = new PlayerTrackerTask(this);
         worldStorage = new WorldStorage();
         addonStorage = new AddonStorage();
         worldChunkScanTracker = new WorldChunkScanTracker();
@@ -378,7 +380,7 @@ public class Insights extends InsightsPlugin {
         if (settings.CHUNK_SCANS_MODE == Settings.ChunkScanMode.ALWAYS) {
             playerTracker = getServer().getAsyncScheduler().runAtFixedRate(
                     this,
-                    scheduledTask -> new PlayerTrackerTask(this).run(),
+                    scheduledTask -> playerTrackerTask.run(),
                     1L,
                     settings.CHUNK_SCANS_PLAYER_TRACKER_INTERVAL_TICKS * 50L,
                     TimeUnit.MILLISECONDS

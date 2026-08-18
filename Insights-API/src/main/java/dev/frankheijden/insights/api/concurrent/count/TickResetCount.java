@@ -71,7 +71,7 @@ public class TickResetCount<T> {
 
     public class ResetTask implements Runnable {
 
-        private int tick;
+        private volatile int tick;
 
         public ResetTask() {
             this.tick = 0;

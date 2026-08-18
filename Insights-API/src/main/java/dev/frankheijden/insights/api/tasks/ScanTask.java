@@ -54,6 +54,7 @@ public class ScanTask<R> implements Runnable {
     private final int chunkCount;
     private long lastInfo = 0;
     private ScheduledTask task;
+    private final CompletableFuture<R> completion = new CompletableFuture<>();
 
     /**
      * Creates a new ScanTask to scan a collection of ChunkPart's.
@@ -267,11 +268,12 @@ public class ScanTask<R> implements Runnable {
                 true,
                 resultSupplier,
                 resultMerger,
-                resultConsumer.andThen(r -> scanners.remove(uuid))
+                resultConsumer
         );
 
-        // Add the player to the scanners
+        // Add the player to the scanners, and clean up when the scan completes.
         scanners.put(uuid, task);
+        task.getCompletionFuture().whenComplete((r, throwable) -> scanners.remove(uuid));
     }
 
     /**
@@ -376,15 +378,27 @@ public class ScanTask<R> implements Runnable {
         task = asyncScheduler.runAtFixedRate(plugin, scheduledTask -> this.run(), 1, plugin.getSettings().SCANS_ITERATION_INTERVAL_TICKS * 50L, TimeUnit.MILLISECONDS);
     }
 
+
+    public CompletableFuture<R> getCompletionFuture() {
+        return completion;
+    }
+
     private void cancel() {
-        if (task != null) {
-            task.cancel();
-            if (completedExceptionally.get()) {
-                resultConsumer.accept(null);
-            } else {
-                sendInfo();
-                resultConsumer.accept(result);
-            }
+        if (task == null) {
+            return;
+        }
+        task.cancel();
+
+        if (completedExceptionally.get()) {
+            completion.completeExceptionally(new RuntimeException("Chunk scan failed"));
+            return;
+        }
+
+        try {
+            sendInfo();
+            resultConsumer.accept(result);
+        } finally {
+            completion.complete(result);
         }
     }
 

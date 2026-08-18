@@ -94,6 +94,18 @@ public class Notifications {
         progressNotificationMap.clear();
     }
 
+    public void clear(UUID uuid) {
+        Cache<Notification> notificationCache = notificationMap.remove(uuid);
+        if (notificationCache != null) {
+            notificationCache.getNotification().clear();
+        }
+
+        Cache<ProgressNotification> progressCache = progressNotificationMap.remove(uuid);
+        if (progressCache != null) {
+            progressCache.getNotification().clear();
+        }
+    }
+
     private static final class Cache<T extends Notification> {
 
         private final T notification;

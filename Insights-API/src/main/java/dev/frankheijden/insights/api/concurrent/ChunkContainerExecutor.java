@@ -16,6 +16,7 @@ import org.bukkit.Chunk;
 import org.bukkit.World;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * Decorator class for ContainerExecutor to add chunk scanning functionality.
@@ -93,9 +94,20 @@ public class ChunkContainerExecutor implements ContainerExecutor {
             scanTracker.set(worldUid, chunkKey, true);
         }
 
-        return submit(container).thenApply(storage -> {
-            if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
+        return submit(container).handle((storage, throwable) -> {
             if (options.track()) scanTracker.set(worldUid, chunkKey, false);
+
+            if (throwable != null) {
+                if (throwable instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
+                }
+                if (throwable instanceof Error error) {
+                    throw error;
+                }
+                throw new CompletionException(throwable);
+            }
+
+            if (options.save()) worldStorage.getWorld(worldUid).put(chunkKey, storage);
 
             var metricsManager = InsightsPlugin.getInstance().getMetricsManager();
             metricsManager.getChunkScanMetric().increment();

@@ -21,4 +21,8 @@ public class ScanHistory {
     public Optional<Messages.PaginatedMessage<?>> getHistory(UUID player) {
         return Optional.ofNullable(historyMap.get(player));
     }
+
+    public void remove(UUID player) {
+        historyMap.remove(player);
+    }
 }

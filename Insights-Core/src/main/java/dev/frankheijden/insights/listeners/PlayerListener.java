@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class PlayerListener extends InsightsListener {
@@ -51,7 +52,11 @@ public class PlayerListener extends InsightsListener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        plugin.getPlayerList().removePlayer(event.getPlayer());
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+        plugin.getPlayerList().removePlayer(player);
+        plugin.getNotifications().clear(uuid);
+        plugin.getScanHistory().remove(uuid);
     }
 
     /**

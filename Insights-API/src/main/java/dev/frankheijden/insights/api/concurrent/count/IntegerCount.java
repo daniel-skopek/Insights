@@ -16,14 +16,14 @@ public class IntegerCount {
     /**
      * Increments the count at given position.
      */
-    public int increment(int pos) {
+    public synchronized int increment(int pos) {
         counts[pos] += 1;
         total += 1;
 
         return total;
     }
 
-    public void reset(int pos) {
+    public synchronized void reset(int pos) {
         total -= counts[pos];
         counts[pos] = 0;
     }
