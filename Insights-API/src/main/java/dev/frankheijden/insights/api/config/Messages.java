@@ -337,25 +337,26 @@ public class Messages {
         }
 
         private Component createButton(int page, ButtonType type) {
-            var button = Component.empty().toBuilder();
+            boolean active = !((type == ButtonType.LEFT && page == 0)
+                    || (type == ButtonType.RIGHT && page == getPageAmount() - 1));
 
-            Key buttonColor;
-            if ((type == ButtonType.LEFT && page == 0) || (type == ButtonType.RIGHT && page == getPageAmount() - 1)) {
-                buttonColor = Key.PAGINATION_BUTTON_COLOR_INACTIVE;
-            } else {
-                buttonColor = Key.PAGINATION_BUTTON_COLOR_ACTIVE;
+            Key buttonColor = active
+                    ? Key.PAGINATION_BUTTON_COLOR_ACTIVE
+                    : Key.PAGINATION_BUTTON_COLOR_INACTIVE;
 
+            Component button = miniMessage.deserialize(getRawMessage(buttonColor) + getRawMessage(type.key));
+
+            if (active) {
                 int clickPage = type == ButtonType.LEFT ? page : page + 2;
-                button.hoverEvent(HoverEvent.showText(miniMessage.deserialize(
-                        getRawMessage(Key.PAGINATION_BUTTON_HOVER),
-                        tagOf("page", clickPage)
-                )));
-                button.clickEvent(ClickEvent.runCommand("/scanhistory " + clickPage));
+                button = button
+                        .hoverEvent(HoverEvent.showText(miniMessage.deserialize(
+                                getRawMessage(Key.PAGINATION_BUTTON_HOVER),
+                                tagOf("page", clickPage)
+                        )))
+                        .clickEvent(ClickEvent.runCommand("/scanhistory " + clickPage));
             }
 
-            button.append(miniMessage.deserialize(getRawMessage(buttonColor) + getRawMessage(type.key)));
-
-            return button.build();
+            return button;
         }
 
         /**
